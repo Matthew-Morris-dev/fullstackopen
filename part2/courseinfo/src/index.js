@@ -5,13 +5,14 @@ const Header = ({ course }) => {
     return <h1>{course.name}</h1>;
 };
 
-const Total = ({ course }) => {
-    const sum = course.parts[0].exercises + course.parts[1].exercises + course.parts[2].exercises;
+const Total = ({ parts }) => {
+    const sum = parts.reduce((acc, part) => {
+        return acc + part.exercises;
+    }, 0);
     return <p>Number of exercises {sum}</p>;
 };
 
 const Part = ({ part }) => {
-    console.log(part.name + " | " + part.exercises);
     return (
         <p>
             {part.name} {part.exercises}
@@ -19,15 +20,10 @@ const Part = ({ part }) => {
     );
 };
 
-const Content = ({ course }) => {
-    console.log(course);
-    const results = course.parts.map((part) => {
-        return <Part key={part.id} part={part} />;
-    });
-    console.log(results);
+const Content = ({ parts }) => {
     return (
         <div>
-            {course.parts.map((part) => {
+            {parts.map((part) => {
                 return <Part key={part.id} part={part} />;
             })}
         </div>
@@ -39,8 +35,8 @@ const Course = ({ course }) => {
     return (
         <div>
             <Header course={course} />
-            <Content course={course} />
-            {/* <Total course={course} /> */}
+            <Content parts={course.parts} />
+            <Total parts={course.parts} />
         </div>
     );
 };
