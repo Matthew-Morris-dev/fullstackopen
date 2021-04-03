@@ -51,13 +51,22 @@ const App = () => {
 
     const personsToShow = persons.filter((person) => person.name.toLowerCase().indexOf(newFilter.toLowerCase()) > -1);
 
+    const handleDeletePerson = (personToDelete) => {
+        let result = window.confirm(`Delete ${personToDelete.name}?`);
+        if (result) {
+            personsService.deletePerson(personToDelete).then((data) => {
+                setPersons(persons.filter((person) => person.id !== personToDelete.id));
+            });
+        }
+    };
+
     return (
         <div>
             <h2>Phonebook</h2>
             <Filter filter={newFilter} handleChange={handleFilterChange} />
             <PersonForm handleAddPerson={addPerson} name={newName} handleNameChange={handleNameChange} number={newNumber} handleNumberChange={handleNumberChange} />
             <h2>Numbers</h2>
-            <Persons contacts={personsToShow} />
+            <Persons contacts={personsToShow} deletePerson={handleDeletePerson} />
             {/* <ul>
                 {personsToShow.map((person) => (
                     <li key={person.name}>
