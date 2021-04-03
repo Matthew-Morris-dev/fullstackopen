@@ -1,3 +1,5 @@
+import WeatherDetails from "./WeatherDetails";
+
 const DetailedCountryDisplay = ({ country }) => {
     return (
         <div>
@@ -13,6 +15,7 @@ const DetailedCountryDisplay = ({ country }) => {
                 </ul>
                 <img style={{ maxHeight: "150px", maxWidth: "200px" }} src={country.flag} />
             </div>
+            <WeatherDetails cityName={country.capital} />
         </div>
     );
 };
