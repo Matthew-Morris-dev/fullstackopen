@@ -26,7 +26,7 @@ const App = () => {
         };
 
         if (persons.some((person) => person.name === newName)) {
-            alert(`${newName} is already added to phonebook`);
+            handleUpdatePerson(newPerson);
             return;
         }
 
@@ -56,6 +56,27 @@ const App = () => {
         if (result) {
             personsService.deletePerson(personToDelete).then((data) => {
                 setPersons(persons.filter((person) => person.id !== personToDelete.id));
+            });
+        }
+    };
+
+    const handleUpdatePerson = (person) => {
+        if (persons.some((oldPersonDetails) => oldPersonDetails.name === person.name && oldPersonDetails.number === person.number)) {
+            alert(`${person.name} already exists in the phonebook with this number`);
+            setNewName("");
+            setNewNumber("");
+            return;
+        }
+
+        const result = window.confirm(`${person.name} is already added to the phonebook, would you like to replace their old number with a new one?`);
+
+        if (result) {
+            const oldDetails = persons.filter((p) => p.name === person.name);
+
+            const updatedPerson = { ...oldDetails[0], number: newNumber };
+
+            personsService.update(updatedPerson).then((returnedPerson) => {
+                setPersons(persons.map((currentPerson) => (currentPerson.id !== returnedPerson.id ? currentPerson : returnedPerson)));
             });
         }
     };
