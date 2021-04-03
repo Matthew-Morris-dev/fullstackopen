@@ -1,10 +1,9 @@
-const Notification = ({ notificationMessage }) => {
-    if (notificationMessage === null) {
+const Notification = ({ notificationInfo }) => {
+    if (notificationInfo === null) {
         return null;
     }
 
-    const notificationStyle = {
-        color: "green",
+    const notificationBaseStyle = {
         background: "lightgrey",
         fontSize: 20,
         borderStyle: "solid",
@@ -13,7 +12,26 @@ const Notification = ({ notificationMessage }) => {
         marginBottom: 10
     };
 
-    return <div style={notificationStyle}>{notificationMessage}</div>;
+    const notificationSuccessStyle = {
+        ...notificationBaseStyle,
+        color: "green"
+    };
+
+    const notificationErrorStyle = {
+        ...notificationBaseStyle,
+        color: "red"
+    };
+
+    let notificationStyle;
+    if (notificationInfo.type === "success") {
+        notificationStyle = notificationSuccessStyle;
+    } else if (notificationInfo.type === "error") {
+        notificationStyle = notificationErrorStyle;
+    } else {
+        return null;
+    }
+
+    return <div style={notificationStyle}>{notificationInfo.message}</div>;
 };
 
 export default Notification;
