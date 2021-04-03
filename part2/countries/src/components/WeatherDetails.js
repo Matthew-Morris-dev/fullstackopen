@@ -24,6 +24,7 @@ const WeatherDetails = ({ cityName }) => {
     if (weather !== null) {
         return (
             <div>
+                <h2>Weather in {cityName}</h2>
                 <h4>Temperature: {weather.temp}</h4>
                 <img src={weather.icon} />
                 <h4>Wind speed: {weather.windSpeed}</h4>
