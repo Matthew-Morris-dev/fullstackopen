@@ -1,6 +1,6 @@
 import DetailedCountryDisplay from "../components/DetailedCountryDisplay";
 
-const CountryDisplay = ({ countries }) => {
+const CountryDisplay = ({ countries, handleShowClicked }) => {
     if (countries.length == 1) {
         return <DetailedCountryDisplay country={countries[0]} />;
     } else if (countries.length > 10) {
@@ -9,7 +9,16 @@ const CountryDisplay = ({ countries }) => {
         return (
             <ul>
                 {countries.map((country) => (
-                    <li key={country.name}>{country.name}</li>
+                    <li key={country.name}>
+                        {country.name}{" "}
+                        <button
+                            onClick={() => {
+                                handleShowClicked(country.name);
+                            }}
+                        >
+                            show
+                        </button>
+                    </li>
                 ))}
             </ul>
         );
