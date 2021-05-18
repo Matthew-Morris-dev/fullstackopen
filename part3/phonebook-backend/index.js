@@ -1,5 +1,8 @@
 const express = require("express");
+
 const app = express();
+
+app.use(express.json());
 
 const persons = [
     {
@@ -26,6 +29,28 @@ const persons = [
 
 app.get("/api/persons", (req, res) => {
     res.json(persons);
+});
+
+app.post("/api/persons", (req, res) => {
+    const body = req.body;
+
+    if (body.name === null || body.name === undefined) {
+        res.status(400).send("'name' is a required field.");
+    }
+
+    if (body.number === null || body.number === undefined) {
+        res.status(400).send("'number' is a required field.");
+    }
+
+    const newPerson = {
+        id: Math.ceil(Math.random() * 10000),
+        name: body.name,
+        number: body.number,
+    };
+
+    persons.push(newPerson);
+
+    res.status(201).send(newPerson);
 });
 
 app.get("/api/persons/:id", (req, res) => {
