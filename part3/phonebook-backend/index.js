@@ -35,11 +35,19 @@ app.post("/api/persons", (req, res) => {
     const body = req.body;
 
     if (body.name === null || body.name === undefined) {
-        res.status(400).send("'name' is a required field.");
+        res.status(400).send({ error: "'name' is a required field." });
     }
 
     if (body.number === null || body.number === undefined) {
-        res.status(400).send("'number' is a required field.");
+        res.status(400).send({ error: "'number' is a required field." });
+    }
+
+    const existingPerson = persons.find((person) => {
+        return person.name === body.name;
+    });
+
+    if (existingPerson !== null && existingPerson !== undefined) {
+        res.status(400).send({ error: `A person with the name '${body.name}' already exists.` });
     }
 
     const newPerson = {
