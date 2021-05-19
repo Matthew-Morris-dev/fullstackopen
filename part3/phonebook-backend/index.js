@@ -1,101 +1,115 @@
 const express = require("express");
-
+const morgan = require("morgan");
+const cors = require("cors");
 const app = express();
+require("dotenv").config();
+const Person = require("./models/person");
 
+app.use(cors());
 app.use(express.json());
+app.use(express.static("build"));
 
-const persons = [
-    {
-        id: 1,
-        name: "Arto Hellas",
-        number: "040-123456",
-    },
-    {
-        id: 2,
-        name: "Ada Lovelace",
-        number: "39-44-5323523",
-    },
-    {
-        id: 3,
-        name: "Dan Abramov",
-        number: "12-43-234345",
-    },
-    {
-        id: 4,
-        name: "Mary Poppendick",
-        number: "39-23-6423122",
-    },
-];
-
-app.get("/api/persons", (req, res) => {
-    res.json(persons);
+morgan.token("custom", function (req) {
+    return JSON.stringify(req.body);
 });
 
-app.post("/api/persons", (req, res) => {
-    const body = req.body;
-
-    if (body.name === null || body.name === undefined) {
-        res.status(400).send({ error: "'name' is a required field." });
-    }
-
-    if (body.number === null || body.number === undefined) {
-        res.status(400).send({ error: "'number' is a required field." });
-    }
-
-    const existingPerson = persons.find((person) => {
-        return person.name === body.name;
-    });
-
-    if (existingPerson !== null && existingPerson !== undefined) {
-        res.status(400).send({ error: `A person with the name '${body.name}' already exists.` });
-    }
-
-    const newPerson = {
-        id: Math.ceil(Math.random() * 10000),
-        name: body.name,
-        number: body.number,
-    };
-
-    persons.push(newPerson);
-
-    res.status(201).send(newPerson);
-});
-
-app.get("/api/persons/:id", (req, res) => {
-    const id = Number(req.params.id);
-    const person = persons.find((person) => {
-        return person.id === id;
-    });
-
-    if (person !== undefined && person !== null) {
-        res.json(person);
-    } else {
-        res.sendStatus(404);
-    }
-});
-
-app.delete("/api/persons/:id", (req, res) => {
-    const id = Number(req.params.id);
-    const person = persons.find((person) => {
-        return person.id === id;
-    });
-
-    if (person === undefined || person === null) {
-        res.sendStatus(404);
-    } else {
-        const index = persons.indexOf(person);
-        persons.splice(index, 1);
-        res.sendStatus(204);
-    }
-});
+app.use(morgan(":method :url :status :res[content-length] - :response-time ms :custom"));
 
 app.get("/info", (req, res) => {
-    res.send(`<p>Phonebook has info ${persons.length} people</p>
-    <p>${new Date().toString()}</p>`);
+    const timeNow = new Date();
+    Person.estimatedDocumentCount().then((count) => {
+        res.send(`
+        <div>
+            <h4>Phonebook has info for ${count} people</h4>
+            <h4>${timeNow}</h4>
+        </div>
+        `);
+    });
 });
 
-const PORT = 3001;
+app.get("/api/persons", (req, res) => {
+    Person.find({}).then((persons) => {
+        res.json(persons);
+    });
+});
 
+app.post("/api/persons", (req, res, next) => {
+    const body = req.body;
+    if (body.name === null || body.name === undefined) {
+        res.status(400).send({ error: `data must contain the field 'name'` });
+    }
+    if (body.number === null || body.number === undefined) {
+        res.status(400).send({ error: `data must contain the field 'number'` });
+    }
+
+    const person = new Person({
+        name: body.name,
+        number: body.number
+    });
+
+    person
+        .save()
+        .then((savedPerson) => {
+            res.json(savedPerson);
+        })
+        .catch((error) => {
+            next(error);
+        });
+});
+
+app.get("/api/persons/:id", (req, res, next) => {
+    Person.findById(req.params.id)
+        .then((person) => {
+            res.json(person);
+        })
+        .catch((error) => {
+            next(error);
+        });
+});
+
+app.put("/api/persons/:id", (req, res, next) => {
+    Person.findByIdAndUpdate(req.params.id, { number: req.body.number }, { new: true, runValidators: true })
+        .then((updatedPerson) => {
+            res.json(updatedPerson);
+        })
+        .catch((error) => next(error));
+});
+
+app.delete("/api/persons/:id", (req, res, next) => {
+    Person.findByIdAndDelete(req.params.id)
+        .then((deletedPerson) => {
+            if (deletedPerson) {
+                res.sendStatus(204);
+            } else {
+                res.sendStatus(404);
+            }
+        })
+        .catch((error) => {
+            next(error);
+        });
+});
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: "unknown endpoint" });
+};
+
+// handler of requests with unknown endpoint
+app.use(unknownEndpoint);
+
+const errorHandler = (error, req, res, next) => {
+    if (error.name === "CastError") {
+        return resizeTo.status(400).send({ error: "malformatted id" });
+    } else if (error.name === "ValidationError") {
+        return res.status(400).json({ error: error.message });
+    }
+
+    next(error);
+};
+
+// this has to be the last loaded middleware.
+app.use(errorHandler);
+
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
+    console.log(`Server listening on port ${PORT}`);
 });
