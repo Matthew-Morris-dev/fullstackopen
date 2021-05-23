@@ -6,7 +6,7 @@
     "scripts": {
         "start": "node index.js",
         "dev": "nodemon index.js",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "jest --verbose"
     },
     "author": "Matthew Morris",
     "license": "MIT",
@@ -14,9 +14,13 @@
         "cors": "^2.8.5",
         "dotenv": "^9.0.2",
         "express": "^4.17.1",
+        "jest": "^26.6.3",
         "mongoose": "^5.12.10"
     },
     "devDependencies": {
         "nodemon": "^2.0.7"
+    },
+    "jest": {
+        "testEnvironment": "node"
     }
 }
