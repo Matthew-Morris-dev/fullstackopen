@@ -5,6 +5,7 @@ const cors = require("cors");
 const blogsRouter = require("./controllers/blogs");
 const logger = require("./utils/logger");
 const mongoose = require("mongoose");
+const helper = require("./test/test_helper");
 
 logger.info(`connecting to ${config.MONGODB_URI}`);
 
