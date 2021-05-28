@@ -53,6 +53,22 @@ test("blog created in database", async () => {
     expect(blogTitlesAfterTest).toContain("Test Blog");
 });
 
+test("if request does not have the property 'likes' it defaults to 0", async () => {
+    const newBlog = {
+        title: "Test Blog",
+        author: "Matthew Morris",
+        url: "http://blog.testblogpost.com/matt-morris/Testing.html",
+    };
+
+    await api.post("/api/blogs").send(newBlog).expect(201);
+
+    const blogsAfterTest = await helper.blogsInDb();
+
+    blogsAfterTest.forEach((blog) => {
+        expect(blog.likes).toBeDefined();
+    });
+});
+
 afterAll(() => {
     mongoose.connection.close();
 });
