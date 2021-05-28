@@ -77,6 +77,17 @@ test("if the properties 'title' and 'url' are missing we get a 400 Bad Request r
     await api.post("/api/blogs").send(newBlog).expect(400);
 });
 
+test("Delete blog returns 204", async () => {
+    const blogsBeforeTest = await helper.blogsInDb();
+    const blogToDelete = blogsBeforeTest[0];
+    console.log(blogToDelete.id);
+
+    await api.delete(`/api/blogs/${blogToDelete.id}`).send().expect(204);
+
+    const blogsAfterTest = await helper.blogsInDb();
+    expect(blogsAfterTest).toHaveLength(helper.blogs.length - 1);
+});
+
 afterAll(() => {
     mongoose.connection.close();
 });
