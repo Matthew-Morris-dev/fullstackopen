@@ -29,6 +29,13 @@ test("All blogs are returned", async () => {
     expect(res.body).toHaveLength(helper.blogs.length);
 });
 
+test("blogs have property id", async () => {
+    const res = await api.get("/api/blogs");
+    res.body.forEach((blog) => {
+        expect(blog.id).toBeDefined();
+    });
+});
+
 afterAll(() => {
     mongoose.connection.close();
 });
