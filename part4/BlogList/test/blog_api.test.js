@@ -36,6 +36,23 @@ test("blogs have property id", async () => {
     });
 });
 
+test("blog created in database", async () => {
+    const newBlog = {
+        title: "Test Blog",
+        author: "Matthew Morris",
+        url: "http://blog.testblogpost.com/matt-morris/Testing.html",
+        likes: 0,
+    };
+
+    await api.post("/api/blogs").send(newBlog).expect(201);
+
+    const blogsAfterTest = await helper.blogsInDb();
+    expect(blogsAfterTest).toHaveLength(helper.blogs.length + 1);
+
+    const blogTitlesAfterTest = blogsAfterTest.map((n) => n.title);
+    expect(blogTitlesAfterTest).toContain("Test Blog");
+});
+
 afterAll(() => {
     mongoose.connection.close();
 });
