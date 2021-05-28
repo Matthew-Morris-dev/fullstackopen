@@ -88,6 +88,18 @@ test("Delete blog returns 204", async () => {
     expect(blogsAfterTest).toHaveLength(helper.blogs.length - 1);
 });
 
+test("Update blog's likes", async () => {
+    const blogsBeforeTest = await helper.blogsInDb();
+    const blogToUpdate = blogsBeforeTest[0];
+    const newBlogValues = {
+        likes: 999,
+    };
+    await api.put(`/api/blogs/${blogToUpdate.id}`).send(newBlogValues).expect(200);
+
+    const blogsAfterTest = await helper.blogsInDb();
+    expect(blogsAfterTest[0].likes).toBe(999);
+});
+
 afterAll(() => {
     mongoose.connection.close();
 });
