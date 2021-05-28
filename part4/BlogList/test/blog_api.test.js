@@ -69,6 +69,14 @@ test("if request does not have the property 'likes' it defaults to 0", async () 
     });
 });
 
+test("if the properties 'title' and 'url' are missing we get a 400 Bad Request response", async () => {
+    const newBlog = {
+        author: "Matthew Morris",
+    };
+
+    await api.post("/api/blogs").send(newBlog).expect(400);
+});
+
 afterAll(() => {
     mongoose.connection.close();
 });
