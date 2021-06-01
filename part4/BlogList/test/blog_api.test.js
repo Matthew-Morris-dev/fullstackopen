@@ -4,8 +4,6 @@ const helper = require("./test_helper");
 const app = require("../app");
 const api = supertest(app);
 const Blog = require("../models/blog");
-const { testEnvironment } = require("../jest.config");
-const { after } = require("lodash");
 
 beforeEach(async () => {
     await Blog.deleteMany({});
