@@ -4,12 +4,29 @@ const helper = require("./test_helper");
 const app = require("../app");
 const api = supertest(app);
 const Blog = require("../models/blog");
+const User = require("../models/user");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { json } = require("express");
+
+const testUserData = {
+    username: "testuser",
+    name: "Test User",
+    password: "testpassword",
+};
 
 beforeEach(async () => {
+    await User.deleteMany({});
+
+    testUserData.passwordHash = await bcrypt.hash(testUserData.password, 10);
+    let testUser = new User(testUserData);
+    await testUser.save();
+
     await Blog.deleteMany({});
 
     for (let blog of Array.from(helper.blogs)) {
         let blogObject = new Blog(blog);
+        blogObject.user = testUser._id;
         await blogObject.save();
     }
 });
@@ -42,13 +59,30 @@ test("blog created in database", async () => {
         likes: 0,
     };
 
-    await api.post("/api/blogs").send(newBlog).expect(201);
+    const loginResponse = await api.post("/api/login").send({ username: testUserData.username, password: testUserData.password });
+    const loginBody = loginResponse.text;
+    await api
+        .post("/api/blogs")
+        .set("Authorization", "bearer " + JSON.parse(loginBody).token)
+        .send(newBlog)
+        .expect(201);
 
     const blogsAfterTest = await helper.blogsInDb();
     expect(blogsAfterTest).toHaveLength(helper.blogs.length + 1);
 
     const blogTitlesAfterTest = blogsAfterTest.map((n) => n.title);
     expect(blogTitlesAfterTest).toContain("Test Blog");
+});
+
+test("Unauthorized if no token provided", async () => {
+    const newBlog = {
+        title: "Test Blog",
+        author: "Matthew Morris",
+        url: "http://blog.testblogpost.com/matt-morris/Testing.html",
+        likes: 0,
+    };
+
+    await api.post("/api/blogs").send(newBlog).expect(401);
 });
 
 test("if request does not have the property 'likes' it defaults to 0", async () => {
@@ -58,7 +92,14 @@ test("if request does not have the property 'likes' it defaults to 0", async () 
         url: "http://blog.testblogpost.com/matt-morris/Testing.html",
     };
 
-    await api.post("/api/blogs").send(newBlog).expect(201);
+    const loginResponse = await api.post("/api/login").send({ username: testUserData.username, password: testUserData.password });
+    const loginBody = loginResponse.text;
+
+    await api
+        .post("/api/blogs")
+        .send(newBlog)
+        .set("Authorization", "bearer " + JSON.parse(loginBody).token)
+        .expect(201);
 
     const blogsAfterTest = await helper.blogsInDb();
 
@@ -72,15 +113,28 @@ test("if the properties 'title' and 'url' are missing we get a 400 Bad Request r
         author: "Matthew Morris",
     };
 
-    await api.post("/api/blogs").send(newBlog).expect(400);
+    const loginResponse = await api.post("/api/login").send({ username: testUserData.username, password: testUserData.password });
+    const loginBody = loginResponse.text;
+
+    await api
+        .post("/api/blogs")
+        .send(newBlog)
+        .set("Authorization", "bearer " + JSON.parse(loginBody).token)
+        .expect(400);
 });
 
 test("Delete blog returns 204", async () => {
     const blogsBeforeTest = await helper.blogsInDb();
     const blogToDelete = blogsBeforeTest[0];
-    console.log(blogToDelete.id);
 
-    await api.delete(`/api/blogs/${blogToDelete.id}`).send().expect(204);
+    const loginResponse = await api.post("/api/login").send({ username: testUserData.username, password: testUserData.password });
+    const loginBody = loginResponse.text;
+
+    await api
+        .delete(`/api/blogs/${blogToDelete.id}`)
+        .set("Authorization", "bearer " + JSON.parse(loginBody).token)
+        .send()
+        .expect(204);
 
     const blogsAfterTest = await helper.blogsInDb();
     expect(blogsAfterTest).toHaveLength(helper.blogs.length - 1);
